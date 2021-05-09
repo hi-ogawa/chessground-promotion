@@ -1,15 +1,13 @@
 # Chessground Promotion
 
-Building
+Development
 
 ```
+# Build library
 npm install
 npm run build:watch
-```
 
-Running Demo
-
-```
+# Build demo frontend
 cd demo
 npm install
 npm start
