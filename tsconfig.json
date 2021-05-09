@@ -1,0 +1,14 @@
+{
+  "include": ["src/*.ts"],
+  "exclude": [],
+  "compilerOptions": {
+    "outDir": ".",
+    "module": "commonjs",
+    "target": "ES2015",
+    "lib": ["DOM", "ES6"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

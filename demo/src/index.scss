@@ -1,0 +1,64 @@
+// Variables
+$c-bg-page: #edebe9;
+$c-bg-box: #fff;
+$box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2),
+  0 1px 5px 0 rgba(0, 0, 0, 0.12);
+
+// Reset
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+}
+
+// Chessground
+@import "../node_modules/chessground/assets/chessground.base";
+@import "../node_modules/chessground/assets/chessground.brown";
+@import "../node_modules/chessground/assets/chessground.cburnett";
+
+// Chessground promotion
+@import "../node_modules/chessground-promotion/src/index";
+
+// Application
+body {
+  background: $c-bg-page;
+}
+
+#root {
+  font-size: 16px;
+  padding: 16px;
+  display: flex;
+}
+
+.board {
+  position: relative;
+  width: 500px;
+  height: 500px;
+
+  .cg-wrap {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
+    cg-board {
+      box-shadow: $box-shadow;
+    }
+  }
+}
+
+.controls {
+  margin-left: 16px;
+  width: 160px;
+  padding: 8px;
+  border-radius: 3px;
+  background: $c-bg-box;
+  box-shadow: $box-shadow;
+
+  input[type="checkbox"] {
+    margin-right: 5px;
+  }
+}

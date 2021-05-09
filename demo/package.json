@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "js": "rollup --config",
+    "js:watch": "rollup --config --watch --no-watch.clearScreen",
+    "css": "sass src/index.scss public/index.css",
+    "css:watch": "sass --watch src/index.scss public/index.css",
+    "server": "python -m http.server -d public",
+    "start": "npm run server & npm run js:watch & npm run css:watch"
+  },
+  "dependencies": {
+    "@rollup/plugin-commonjs": "^18.0.0",
+    "@rollup/plugin-node-resolve": "^11.2.1",
+    "@rollup/plugin-typescript": "^8.2.1",
+    "@types/mithril": "^2.0.7",
+    "chessground": "^7.11.1",
+    "chessground-promotion": "file:..",
+    "chessops": "^0.8.1",
+    "mithril": "^2.0.4",
+    "rollup": "^2.47.0",
+    "sass": "^1.32.12",
+    "typescript": "^4.2.4"
+  }
+}
