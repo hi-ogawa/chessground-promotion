@@ -38,24 +38,24 @@ const App = () => {
 
   const onMove = (orig: Key, dest: Key, capt?: Piece) => {
     play(orig, dest);
-    cgSet();
+    cg.set(makeConfig());
   };
 
   const onPromotion = (orig: Key, dest: Key, capt?: Piece, role?: Role) => {
     if (role) {
       play(orig, dest, role);
     }
-    cgSet();
+    cg.set(makeConfig());
   };
 
-  const cgSet = () => {
-    let config: Config = {
+  const makeConfig = (): Config => {
+    return {
       orientation,
       fen: freeMode ? freeFen : makeBoardFen(position.board),
       turnColor: freeMode ? undefined : position.turn,
       lastMove: undefined,
       events: {
-        move: cgPromotion.patchMove(onMove),
+        move: cgPromotion.patch(onMove, onPromotion),
       },
       movable: freeMode
         ? {
@@ -69,13 +69,11 @@ const App = () => {
             dests: chessgroundDests(position),
           },
     };
-    cg.set(config);
   };
 
   const oncreate = () => {
-    cg = Chessground($(".cg"));
-    cgPromotion = new ChessgroundPromotion($(".cg-promotion"), cg, onPromotion);
-    cgSet();
+    cgPromotion = new ChessgroundPromotion($(".cg-promotion"), () => cg);
+    cg = Chessground($(".cg"), makeConfig());
   };
 
   const onbeforeremove = () => {
@@ -107,7 +105,7 @@ const App = () => {
               checked: freeMode,
               onchange: (e: MouseEvent) => {
                 freeMode = isChecked(e);
-                cgSet();
+                cg.set(makeConfig());
               },
             }),
             "Free mode",

@@ -38,13 +38,14 @@ export class ChessgroundPromotion {
 
   constructor(
     private el: HTMLElement,
-    private api: Api,
-    private onPromotion: OnPromotion
-  ) {}
+    private cg: () => Api // This allows instantiating `ChessgroundPromotion` before `Chessground`
+  ) {
+    this.redraw();
+  }
 
-  patchMove(onMove?: OnMove): OnMove {
+  patch(onMove: OnMove, onPromotion: OnPromotion): OnMove {
     return (orig: Key, dest: Key, capturedPiece?: Piece) => {
-      const piece = this.api.state.pieces.get(dest);
+      const piece = this.cg().state.pieces.get(dest);
       if (!piece) {
         return;
       }
@@ -56,23 +57,15 @@ export class ChessgroundPromotion {
       }
       this.prompt(dest, piece.color).then((role) => {
         if (role) {
-          this.api.setPieces(
+          this.cg().setPieces(
             new Map([
               [dest, { color: piece.color, role: role, promoted: true }],
             ])
           );
         }
-        this.onPromotion(orig, dest, capturedPiece, role);
+        onPromotion(orig, dest, capturedPiece, role);
       });
     };
-  }
-
-  patchConfig(config: Config): Config {
-    if (!config.events) {
-      config.events = {};
-    }
-    config.events.move = this.patchMove(config.events.move);
-    return config;
   }
 
   async prompt(dest: Key, color: Color): Promise<Role | undefined> {
@@ -95,7 +88,7 @@ export class ChessgroundPromotion {
       return h("cg-helper", h("cg-container", h("cg-board")));
     }
     const { dest, color, resolve } = this.state;
-    const orientation = this.api.state.orientation;
+    const orientation = this.cg().state.orientation;
     let left = dest.charCodeAt(0) - "a".charCodeAt(0);
     let top = color == "white" ? 0 : 7;
     let topStep = color == "white" ? 1 : -1;
