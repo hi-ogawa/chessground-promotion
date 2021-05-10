@@ -1,13 +1,15 @@
 {
   "name": "chessground-promotion",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Promotion dialog for chessground",
   "repository": "https://github.com/hi-ogawa/chessground-promotion",
   "main": "index.js",
   "files": [
     "index.js",
     "index.js.map",
-    "index.d.ts"
+    "index.d.ts",
+    "src/index.ts",
+    "src/index.scss"
   ],
   "scripts": {
     "build": "tsc --sourceMap --declaration",
