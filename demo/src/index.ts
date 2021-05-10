@@ -38,14 +38,14 @@ const App = () => {
 
   const onMove = (orig: Key, dest: Key, capt?: Piece) => {
     play(orig, dest);
-    redraw();
+    cgSet();
   };
 
   const onPromotion = (orig: Key, dest: Key, capt?: Piece, role?: Role) => {
     if (role) {
       play(orig, dest, role);
     }
-    redraw();
+    cgSet();
   };
 
   const cgSet = () => {
@@ -53,8 +53,9 @@ const App = () => {
       orientation,
       fen: freeMode ? freeFen : makeBoardFen(position.board),
       turnColor: freeMode ? undefined : position.turn,
+      lastMove: undefined,
       events: {
-        move: onMove,
+        move: cgPromotion.patchMove(onMove),
       },
       movable: freeMode
         ? {
@@ -68,17 +69,12 @@ const App = () => {
             dests: chessgroundDests(position),
           },
     };
-    config = cgPromotion.patch(config);
     cg.set(config);
   };
 
   const oncreate = () => {
     cg = Chessground($(".cg"));
     cgPromotion = new ChessgroundPromotion($(".cg-promotion"), cg, onPromotion);
-    cgSet();
-  };
-
-  const onupdate = () => {
     cgSet();
   };
 
@@ -94,9 +90,11 @@ const App = () => {
           h("label", [
             h("input", {
               type: "checkbox",
-              checked: orientation == "white",
+              checked: orientation == "black",
               onchange: (e: MouseEvent) => {
-                orientation = isChecked(e) ? "white" : "black";
+                orientation = isChecked(e) ? "black" : "white";
+                cg.set({ orientation });
+                cgPromotion.redraw();
               },
             }),
             "Flip board",
@@ -109,6 +107,7 @@ const App = () => {
               checked: freeMode,
               onchange: (e: MouseEvent) => {
                 freeMode = isChecked(e);
+                cgSet();
               },
             }),
             "Free mode",
@@ -118,7 +117,7 @@ const App = () => {
     ]);
   };
 
-  return { oncreate, onupdate, onbeforeremove, view };
+  return { oncreate, onbeforeremove, view };
 };
 
 const start = () => {

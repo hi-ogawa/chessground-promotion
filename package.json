@@ -1,6 +1,6 @@
 {
   "name": "chessground-promotion",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Promotion dialog for chessground",
   "repository": "https://github.com/hi-ogawa/chessground-promotion",
   "main": "index.js",

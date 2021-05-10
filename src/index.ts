@@ -2,11 +2,13 @@ import { Api } from "chessground/api";
 import { Config } from "chessground/config";
 import { Key, Piece, Role, Color } from "chessground/types";
 
-import { render as mRender, Vnode } from "mithril";
+import { render, Vnode } from "mithril";
 import h from "mithril/hyperscript";
 
+type OnMove = (orig: Key, dest: Key, capturedPiece?: Piece) => void;
+
 // `role == undefined` when promotion dialog is canceled
-type Callback = (
+type OnPromotion = (
   orig: Key,
   dest: Key,
   capturedPiece?: Piece,
@@ -23,26 +25,32 @@ const isPromotion = (orig: Key, dest: Key, piece: Piece): boolean => {
   );
 };
 
+type Resolve = (role: Role | undefined) => void;
+
+interface State {
+  dest: Key;
+  color: Color;
+  resolve: Resolve;
+}
+
 export class ChessgroundPromotion {
+  private state?: State = undefined;
+
   constructor(
     private el: HTMLElement,
     private api: Api,
-    private onPromotion: Callback
+    private onPromotion: OnPromotion
   ) {}
 
-  patch(config: Config): Config {
-    if (!config.events) {
-      config.events = {};
-    }
-    const onMoveOld = config.events.move;
-    const onMoveNew = (orig: Key, dest: Key, capturedPiece?: Piece) => {
+  patchMove(onMove?: OnMove): OnMove {
+    return (orig: Key, dest: Key, capturedPiece?: Piece) => {
       const piece = this.api.state.pieces.get(dest);
       if (!piece) {
         return;
       }
       if (!isPromotion(orig, dest, piece)) {
-        if (onMoveOld) {
-          onMoveOld(orig, dest, capturedPiece);
+        if (onMove) {
+          onMove(orig, dest, capturedPiece);
         }
         return;
       }
@@ -57,29 +65,37 @@ export class ChessgroundPromotion {
         this.onPromotion(orig, dest, capturedPiece, role);
       });
     };
-    config.events.move = onMoveNew;
+  }
+
+  patchConfig(config: Config): Config {
+    if (!config.events) {
+      config.events = {};
+    }
+    config.events.move = this.patchMove(config.events.move);
     return config;
   }
 
   async prompt(dest: Key, color: Color): Promise<Role | undefined> {
-    this.el.classList.add("cg-promotion--open");
-    const role = await new Promise((resolve) => {
-      mRender(
-        this.el,
-        this.render(dest, color, this.api.state.orientation, resolve)
-      );
+    const role: Role | undefined = await new Promise((resolve: Resolve) => {
+      this.state = { dest, color, resolve };
+      this.redraw();
     });
-    this.el.classList.remove("cg-promotion--open");
-    mRender(this.el, null);
-    return role as Promise<Role | undefined>;
+    this.state = undefined;
+    this.redraw();
+    return role;
   }
 
-  render(
-    dest: Key,
-    color: Color,
-    orientation: Color,
-    resolve: (role: Role | undefined) => void
-  ): Vnode {
+  redraw() {
+    this.el.classList.toggle("cg-promotion--open", !!this.state);
+    render(this.el, this.view());
+  }
+
+  view(): Vnode {
+    if (!this.state) {
+      return h("cg-helper", h("cg-container", h("cg-board")));
+    }
+    const { dest, color, resolve } = this.state;
+    const orientation = this.api.state.orientation;
     let left = dest.charCodeAt(0) - "a".charCodeAt(0);
     let top = color == "white" ? 0 : 7;
     let topStep = color == "white" ? 1 : -1;
@@ -88,26 +104,21 @@ export class ChessgroundPromotion {
       top = 7 - top;
       topStep *= -1;
     }
+    let roles: Vnode[] = kPromotionRoles.map((role, i) =>
+      h(
+        "square",
+        {
+          style: `top: ${(top + i * topStep) * 12.5}%; left: ${left * 12.5}%`,
+          onclick: () => resolve(role),
+        },
+        h(`piece.${color}.${role}`)
+      )
+    );
     return h(
       "cg-helper",
       h(
         "cg-container",
-        h(
-          "cg-board",
-          { onclick: () => resolve(undefined) },
-          kPromotionRoles.map((role, i) =>
-            h(
-              "square",
-              {
-                style: `top: ${(top + i * topStep) * 12.5}%; left: ${
-                  left * 12.5
-                }%`,
-                onclick: () => resolve(role),
-              },
-              h(`piece.${color}.${role}`)
-            )
-          )
-        )
+        h("cg-board", { onclick: () => resolve(undefined) }, roles)
       )
     );
   }

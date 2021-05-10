@@ -1,19 +1,19 @@
 // Cf. https://github.com/ornicar/lila/blob/master/ui/chess/css/_promotion.scss
 
 .cg-promotion {
-  background: rgba(22, 21, 18, 0);
   pointer-events: none;
   z-index: 20;
-  transition: all 150ms;
-
-  &.cg-promotion--open {
-    background: rgba(22, 21, 18, 0.7);
-    pointer-events: initial;
-  }
 
   cg-board {
+    background: rgba(22, 21, 18, 0);
+    transition-property: background;
+    transition-duration: 150ms;
+  }
+
+  &.cg-promotion--open cg-board {
     cursor: initial;
-    background: none;
+    pointer-events: initial;
+    background: rgba(22, 21, 18, 0.7);
   }
 
   square {
@@ -21,7 +21,9 @@
     border-radius: 50%;
     background-color: #b0b0b0;
     box-shadow: inset 0 0 25px 3px #808080;
-    transition: all 150ms;
+
+    transition-property: border-radius, box-shadow;
+    transition-duration: 150ms;
 
     piece {
       width: 100%;
@@ -29,7 +31,8 @@
       pointer-events: auto;
       opacity: 1;
       transform: scale(0.8);
-      transition: all 150ms;
+      transition-property: transform;
+      transition-duration: 150ms;
     }
   }
 
