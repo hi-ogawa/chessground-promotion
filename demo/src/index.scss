@@ -1,8 +1,14 @@
 // Variables
-$c-bg-page: #edebe9;
-$c-bg-box: #fff;
-$box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2),
-  0 1px 5px 0 rgba(0, 0, 0, 0.12);
+:root {
+  --c-text: #bababa;
+  --c-bg-1: #2b343b;
+  --c-bg-2: #3f474d;
+  --c-pallete-1: #9fc0a2;
+  --c-pallete-2: #d36d6d;
+
+  --border-radius: 2px;
+  --box-shadow: none;
+}
 
 // Reset
 *,
@@ -25,7 +31,8 @@ $box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2),
 
 // Application
 body {
-  background: $c-bg-page;
+  color: var(--c-text);
+  background: var(--c-bg-1);
 }
 
 #root {
@@ -45,7 +52,7 @@ body {
     height: 100%;
 
     cg-board {
-      box-shadow: $box-shadow;
+      box-shadow: var(--box-shadow);
     }
   }
 }
@@ -53,10 +60,10 @@ body {
 .controls {
   margin-left: 16px;
   width: 160px;
-  padding: 8px;
-  border-radius: 3px;
-  background: $c-bg-box;
-  box-shadow: $box-shadow;
+  padding: 10px;
+  border-radius: var(--border-radius);
+  background: var(--c-bg-2);
+  box-shadow: var(--box-shadow);
 
   input[type="checkbox"] {
     margin-right: 5px;

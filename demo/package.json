@@ -4,8 +4,9 @@
     "js:watch": "rollup --config --watch --no-watch.clearScreen",
     "css": "sass src/index.scss public/index.css",
     "css:watch": "sass --watch src/index.scss public/index.css",
-    "server": "python -m http.server -d public",
-    "start": "npm run server & npm run js:watch & npm run css:watch"
+    "server": "serve public",
+    "start": "npm run server & npm run js:watch & npm run css:watch",
+    "deploy": "bash deploy.sh"
   },
   "dependencies": {
     "@rollup/plugin-commonjs": "^18.0.0",
@@ -15,9 +16,11 @@
     "chessground": "^7.11.1",
     "chessground-promotion": "file:..",
     "chessops": "^0.8.1",
+    "gh-pages": "^3.1.0",
     "mithril": "^2.0.4",
     "rollup": "^2.47.0",
     "sass": "^1.32.12",
+    "serve": "^11.3.2",
     "typescript": "^4.2.4"
   }
 }
