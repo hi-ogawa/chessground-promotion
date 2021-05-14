@@ -6064,6 +6064,57 @@
 	//# sourceMappingURL=index.js.map
 	});
 
+	var uci = createCommonjsModule(function (module, exports) {
+	// Wrapper for Chessground and ChessgroundPromotion altogether
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.ChessgroundUci = void 0;
+
+
+	const roleToChar = (s) => {
+	    if (s == "knight") {
+	        return "n";
+	    }
+	    return s[0];
+	};
+	const toUci = (orig, dest, promotion) => {
+	    return orig + dest + (promotion ? roleToChar(promotion) : "");
+	};
+	class ChessgroundUci {
+	    constructor(el, onUci, config) {
+	        this.el = el;
+	        this.onUci = onUci;
+	        const elCg = document.createElement("div");
+	        const elCgPromotion = document.createElement("div");
+	        elCg.classList.add("cg");
+	        elCg.classList.add("cg-wrap");
+	        elCgPromotion.classList.add("cg-promotion");
+	        elCgPromotion.classList.add("cg-wrap");
+	        this.el.appendChild(elCg);
+	        this.el.appendChild(elCgPromotion);
+	        this.cgPromotion = new chessgroundPromotion.ChessgroundPromotion(elCgPromotion, () => this.cg);
+	        this.cg = chessground.Chessground(elCg, config && this.patch(config));
+	    }
+	    patch(config) {
+	        if (!config.events) {
+	            config.events = {};
+	        }
+	        config.events.move = this.cgPromotion.patch(this.onMove.bind(this), this.onPromotion.bind(this));
+	        return config;
+	    }
+	    set(config) {
+	        this.cg.set(this.patch(config));
+	    }
+	    onMove(orig, dest, _capt) {
+	        this.onUci(toUci(orig, dest));
+	    }
+	    onPromotion(orig, dest, _capt, role) {
+	        this.onUci(role && toUci(orig, dest, role));
+	    }
+	}
+	exports.ChessgroundUci = ChessgroundUci;
+	//# sourceMappingURL=uci.js.map
+	});
+
 	function r(r,n){r.prototype=Object.create(n.prototype),r.prototype.constructor=r,r.__proto__=n;}var n,t=function(){function r(){}var t=r.prototype;return t.unwrap=function(r,t){var o=this._chain(function(t){return n.ok(r?r(t):t)},function(r){return t?n.ok(t(r)):n.err(r)});if(o.isErr)throw o.error;return o.value},t.map=function(r,t){return this._chain(function(t){return n.ok(r(t))},function(r){return n.err(t?t(r):r)})},t.chain=function(r,t){return this._chain(r,t||function(r){return n.err(r)})},r}(),o=function(n){function t(r){var t;return (t=n.call(this)||this).value=r,t.isOk=!0,t.isErr=!1,t}return r(t,n),t.prototype._chain=function(r,n){return r(this.value)},t}(t),e=function(n){function t(r){var t;return (t=n.call(this)||this).error=r,t.isOk=!1,t.isErr=!0,t}return r(t,n),t.prototype._chain=function(r,n){return n(this.error)},t}(t);!function(r){r.ok=function(r){return new o(r)},r.err=function(r){return new e(r||new Error)},r.all=function(n){if(Array.isArray(n)){for(var t=[],o=0;o<n.length;o++){var e=n[o];if(e.isErr)return e;t.push(e.value);}return r.ok(t)}for(var u={},i=Object.keys(n),c=0;c<i.length;c++){var a=n[i[c]];if(a.isErr)return a;u[i[c]]=a.value;}return r.ok(u)};}(n||(n={}));
 
 	var dist = /*#__PURE__*/Object.freeze({
@@ -7759,32 +7810,24 @@
 	//# sourceMappingURL=compat.js.map
 	});
 
-	const $ = (s) => document.querySelector(s);
 	const isChecked = (e) => e.currentTarget.checked;
 	const App = () => {
 	    let cg;
-	    let cgPromotion;
 	    let orientation = "white";
 	    let freeMode = true;
 	    let freeFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 	    let position = chess.Chess.default();
-	    const play = (orig, dest, promotion) => {
-	        if (freeMode) {
-	            freeFen = cg.getFen();
+	    const onUci = (uci) => {
+	        if (!uci) {
+	            // Promotion dialog is cancelled
+	            cg.set(makeConfig());
 	            return;
 	        }
-	        const uci = orig + dest + (promotion ? util.roleToChar(promotion) : "");
-	        const move = util.parseUci(uci);
-	        position.play(move);
-	    };
-	    const onMove = (orig, dest, capt) => {
-	        play(orig, dest);
-	        cg.set(makeConfig());
-	    };
-	    const onPromotion = (orig, dest, capt, role) => {
-	        if (role) {
-	            play(orig, dest, role);
+	        if (freeMode) {
+	            freeFen = cg.cg.getFen();
+	            return;
 	        }
+	        position.play(util.parseUci(uci));
 	        cg.set(makeConfig());
 	    };
 	    const makeConfig = () => {
@@ -7793,9 +7836,6 @@
 	            fen: freeMode ? freeFen : fen.makeBoardFen(position.board),
 	            turnColor: freeMode ? undefined : position.turn,
 	            lastMove: undefined,
-	            events: {
-	                move: cgPromotion.patch(onMove, onPromotion),
-	            },
 	            movable: freeMode
 	                ? {
 	                    free: true,
@@ -7809,16 +7849,15 @@
 	                },
 	        };
 	    };
-	    const oncreate = () => {
-	        cgPromotion = new chessgroundPromotion.ChessgroundPromotion($(".cg-promotion"), () => cg);
-	        cg = chessground.Chessground($(".cg"), makeConfig());
+	    const oncreate = (vnode) => {
+	        cg = new uci.ChessgroundUci(vnode.dom.querySelector(".board"), onUci, makeConfig());
 	    };
 	    const onbeforeremove = () => {
-	        cg.destroy();
+	        cg.cg.destroy();
 	    };
 	    const view = () => {
 	        return hyperscript_1$2("#root", [
-	            hyperscript_1$2(".board", [hyperscript_1$2(".cg.cg-wrap"), hyperscript_1$2(".cg-promotion.cg-wrap")]),
+	            hyperscript_1$2(".board"),
 	            hyperscript_1$2(".controls", [
 	                hyperscript_1$2("div", [
 	                    hyperscript_1$2("label", [
@@ -7828,7 +7867,7 @@
 	                            onchange: (e) => {
 	                                orientation = isChecked(e) ? "black" : "white";
 	                                cg.set({ orientation });
-	                                cgPromotion.redraw();
+	                                cg.cgPromotion.redraw();
 	                            },
 	                        }),
 	                        "Flip board",
