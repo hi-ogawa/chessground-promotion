@@ -1,5 +1,4 @@
 import { Api } from "chessground/api";
-import { Config } from "chessground/config";
 import { Key, Piece, Role, Color } from "chessground/types";
 
 import { render, Vnode } from "mithril";
